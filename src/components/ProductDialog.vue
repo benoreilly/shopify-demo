@@ -1,87 +1,62 @@
-<!-- src/components/ProductDialog.vue -->
 <template>
   <dialog ref="dialog" class="product-dialog">
-    <article v-if="product">
-      <header class="dialog-header">
-        <h2>{{ product.title }}</h2>
-        <button class="close-btn" @click="closeDialog">✕</button>
+    <div v-if="product" class="product-dialog__container">
+      <header class="product-dialog__header">
+        <button type="button" class="product-dialog__close-btn" aria-label="Close" @click="close">
+          &larr;
+        </button>
+        <h2 class="product-dialog__title">{{ product.title }}</h2>
       </header>
 
-      <div class="dialog-body">
-        <img
-          v-if="product.images?.edges?.length"
-          :src="product.images.edges[0].node.src"
-          :alt="product.title"
-          class="dialog-image"
-        />
-        <p class="dialog-description">{{ product.description }}</p>
-        <p class="dialog-price">Price: ${{ product.variants.edges[0].node.price.amount }}</p>
+      <div class="product-dialog__body">
+        <div class="product-dialog__col-left">
+          <img
+            v-if="product.images?.edges?.length"
+            :src="product.images.edges[0].node.src"
+            :alt="product.title"
+            class="product-dialog__image"
+          />
+          <span class="product-dialog__id">Item #: {{ rawId }}</span>
+          <p class="product-dialog__price">${{ product.variants.edges[0].node.price.amount }}</p>
+        </div>
+        <div class="product-dialog__col-right">
+          <div class="product-dialog__description" v-html="product.descriptionHtml"></div>
+        </div>
       </div>
-    </article>
+    </div>
   </dialog>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, defineExpose, defineProps, computed } from 'vue';
 
 const props = defineProps({
-  product: Object,
-  open: Boolean,
+  product: {
+    type: Object,
+    default: null,
+  },
 });
 
-const emit = defineEmits(['close']);
+const rawId = computed(() => {
+  const id = props.product?.id;
+  return id ? id.match(/\d+$/)?.[0] ?? null : null;
+});
 
 const dialog = ref(null);
 
-watch(
-  () => props.open,
-  (isOpen) => {
-    if (isOpen) dialog.value?.showModal();
-    else dialog.value?.close();
+function open() {
+  if (dialog.value && !dialog.value.open) {
+    dialog.value.showModal();
+    document.body.style.overflow = 'hidden';
   }
-);
-
-function closeDialog() {
-  dialog.value?.close();
-  emit('close');
 }
+
+function close() {
+  if (dialog.value && dialog.value.open) {
+    dialog.value.close();
+    document.body.style.overflow = '';
+  }
+}
+
+defineExpose({ open, close });
 </script>
-
-<style scoped>
-.product-dialog {
-  border: none;
-  border-radius: 10px;
-  padding: 0;
-  max-width: 600px;
-  width: 90%;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1em;
-  background: #009688;
-  color: white;
-}
-
-.dialog-body {
-  padding: 1em;
-  background: #fff;
-}
-
-.dialog-image {
-  width: 100%;
-  border-radius: 6px;
-  margin-bottom: 1em;
-}
-
-.close-btn {
-  background: transparent;
-  border: none;
-  font-size: 1.2em;
-  color: white;
-  cursor: pointer;
-}
-</style>

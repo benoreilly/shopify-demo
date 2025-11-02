@@ -1,6 +1,6 @@
-export async function fetchProducts() {
-  const endpooint = `https://${import.meta.env.VITE_SHOPIFY_STORE_DOMAIN}/api/2024-10/graphql.json`;
+import { shopifyQuery } from './shopifyClient';
 
+export async function fetchProducts() {
   const query = `
 {
   products(first: 30) {
@@ -9,6 +9,7 @@ export async function fetchProducts() {
         id
         title
         handle
+        tags
         description
         descriptionHtml
 				isGiftCard
@@ -46,23 +47,13 @@ export async function fetchProducts() {
 `;
 
   try {
-    const response = await fetch(endpooint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': import.meta.env.VITE_SHOPIFY_STOREFRONT_API_TOKEN,
-      },
-      body: JSON.stringify({ query }),
-    });
-
-    const result = await response.json();
-
-    if (!result.data || !result.data.products) {
-      console.error('Invalid response structure:', result);
+    const data = await shopifyQuery(query);
+    if (!data?.products?.edges) {
+      console.error('Invalid product response:', data);
       return [];
     }
 
-    return result.data.products.edges.map((edge) => edge.node);
+    return data.products.edges.map((edge) => edge.node);
   } catch (error) {
     console.error('Error fetching products:', error);
     return [];

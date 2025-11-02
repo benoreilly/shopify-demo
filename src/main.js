@@ -1,5 +1,13 @@
-import { createApp } from 'vue'
-import './style.css'
-import App from './App.vue'
+import { createApp } from 'vue';
+import './style.scss';
+import App from './App.vue';
+import { router } from './router';
+import { cartStore } from './utils/cartStore';
 
-createApp(App).mount('#app')
+async function bootstrap() {
+  await cartStore.init();
+
+  createApp(App).use(router).mount('#app');
+}
+
+bootstrap();

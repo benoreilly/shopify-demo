@@ -1,120 +1,70 @@
 <template>
   <div class="product-grid">
     <div v-for="product in snowboardProducts" :key="product.id" class="product-card">
-      <div class="product-container">
-        <div class="product-image-container">
+      <div class="product-card__container">
+        <div class="product-card__image-container">
           <img
             v-if="product.images.edges.length"
             :src="product.images.edges[0].node.src"
             :alt="product.title"
-            class="product-image"
+            class="product-card__image"
           />
         </div>
+        <div class="product-card__content">
+          <h2 class="product-card__title">{{ product.title }}</h2>
+          <span class="product-card__price">${{ product.variants.edges[0].node.price.amount }}</span>
+          <p class="product-card__desc">{{ generateIntro(product) }}</p>
+        </div>
 
-        <h2 class="product-title">{{ product.title }}</h2>
-        <span class="product-price">${{ product.variants.edges[0].node.price.amount }}</span>
-
-        <button class="product-details" @click="viewDetails(product)">View Details</button>
-        <button @click="addToCart(product)">Add to Cart</button>
+        <div class="product-card__actions">
+          <button class="product-card__details-btn" @click="openDialog(product)">Quick View</button>
+          <button class="product-card__add-to-cart" @click="addToCart(product)">Add to Cart</button>
+        </div>
       </div>
     </div>
 
-    <ProductDialog
-      v-if="selectedProduct"
-      :product="selectedProduct"
-      :open="showDialog"
-      @close="closeDialog"
-    />
+    <ProductDialog v-if="selectedProduct" ref="dialogRef" :product="selectedProduct" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { fetchProducts } from '../api/fetchProducts.js';
+import { ref, onMounted, computed, nextTick } from 'vue';
+import { productStore } from '../utils/productStore';
+import { cartStore } from '../utils/cartStore';
+import { injectSlideoutStyles } from '../utils/slideoutStyleInjector.js';
 import ProductDialog from './ProductDialog.vue';
 
-const products = ref([]);
+const dialogRef = ref(null);
 const selectedProduct = ref(null);
-const showDialog = ref(false);
 
-function viewDetails(product) {
+async function openDialog(product) {
   selectedProduct.value = product;
-  showDialog.value = true;
-}
-
-function closeDialog() {
-  showDialog.value = false;
+  await nextTick();
+  dialogRef.value?.open();
 }
 
 const snowboardProducts = computed(() =>
-  products.value.filter((p) => p.productType === 'snowboard' && p.images.edges.length > 0)
+  productStore.items.filter(
+    (p) =>
+      p.productType === 'snowboard' &&
+      p.images?.edges?.length > 0 &&
+      p.handle !== 'the-out-of-stock-snowboard'
+  )
 );
 
-const images = ref(
-  products.value.map((product) => {
-    if (product.images.edges.length) {
-      return product.images.edges[0].node.src;
-    }
-    return null;
-  })
-);
+const generateIntro = (product) => {
+  const productTitle = product.title;
+  return product.description.replace(productTitle, '');
+};
 
 const addToCart = (product) => {
-  console.log('Adding to cart:', product.title);
-  // Implement add to cart functionality here
+  const variantId = product.variants.edges[0].node.id;
+  cartStore.add(variantId);
 };
 
 onMounted(async () => {
-  products.value = await fetchProducts();
-  console.log('Fetched products:', products.value);
+  injectSlideoutStyles();
+  await cartStore.init();
+  await productStore.init();
 });
 </script>
-
-<style lang="css" scoped>
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  padding: 20px;
-  color: #282828;
-}
-
-.product-card {
-  display: grid;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
-  border-radius: 10px;
-  padding: 15px;
-}
-
-.product-container {
-  display: grid;
-  align-items: center;
-}
-
-.product-title {
-  font-size: 1.2em;
-  margin-top: 10px;
-  text-align: center;
-  color: #333;
-}
-
-.product-image {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 16/9;
-  object-fit: scale-down;
-  border-radius: 8px;
-}
-
-button {
-  background-color: transparent;
-  color: #282828;
-  font-size: 1em;
-  border: 2px solid #282828;
-  margin-top: 10px;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-</style>
