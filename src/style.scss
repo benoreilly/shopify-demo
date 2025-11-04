@@ -79,13 +79,14 @@ button:focus-visible {
     align-items: center;
   }
   .home-container {
+    max-width: 1480px;
+    margin: 0 auto;
     min-height: 100vh;
+    margin-top: 3rem;
   }
 }
 
 .product-grid {
-  max-width: 1480px;
-  margin: 0 auto;
   padding: 2rem;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -440,14 +441,14 @@ button:focus-visible {
   }
   &__img-container {
     width: 150px;
-    height: auto;
+    height: 150px;
     overflow: hidden;
     flex-shrink: 0;
   }
   &__image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: scale-down;
   }
   .cart-item__meta {
     display: flex;
@@ -455,9 +456,10 @@ button:focus-visible {
     margin-top: 8px;
     gap: 4px;
   }
-  .car-item-price,
+  .cart-item__price,
   .cart-item__quantity {
     font-size: 1rem;
+    font-weight: 600;
   }
   .checkout-btn {
     margin-top: 2rem;

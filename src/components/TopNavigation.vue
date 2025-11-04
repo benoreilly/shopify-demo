@@ -4,7 +4,7 @@
       <div class="nav-left">
         <div class="top-nav__fixture" @click="goHome">
           <img src="../assets/snowflake.svg" alt="Shopify Demo Logo" class="nav-logo" />
-          <h1 class="nav-title">Shopify Demo</h1>
+          <h1 class="nav-title">Shopify Sandbox</h1>
         </div>
       </div>
 

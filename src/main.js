@@ -4,10 +4,6 @@ import App from './App.vue';
 import { router } from './router';
 import { cartStore } from './utils/cartStore';
 
-async function bootstrap() {
-  await cartStore.init();
+cartStore.init();
 
-  createApp(App).use(router).mount('#app');
-}
-
-bootstrap();
+createApp(App).use(router).mount('#app');
